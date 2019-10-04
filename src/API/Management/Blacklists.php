@@ -2,6 +2,8 @@
 
 namespace Auth0\SDK\API\Management;
 
+use Auth0\SDK\API\Header\ContentType;
+
 class Blacklists extends GenericResource
 {
     /**
@@ -11,9 +13,9 @@ class Blacklists extends GenericResource
      */
     public function getAll($aud)
     {
-        return $this->apiClient->method('get')
-            ->addPath('blacklists')
-            ->addPath('tokens')
+        return $this->apiClient->get()
+            ->blacklists()
+            ->tokens()
             ->withParam('aud', $aud)
             ->call();
     }
@@ -26,9 +28,10 @@ class Blacklists extends GenericResource
      */
     public function blacklist($aud, $jti)
     {
-        return $this->apiClient->method('post')
-            ->addPath('blacklists')
-            ->addPath('tokens')
+        return $this->apiClient->post()
+            ->blacklists()
+            ->tokens()
+            ->withHeader(new ContentType('application/json'))
             ->withBody(json_encode([
                 'aud' => $aud,
                 'jti' => $jti

@@ -15,14 +15,13 @@ commands:
           root: .
           paths:
             - composer.*
-            - .snyk
       - save_cache:
           key: composer-v1-{{ .Environment.CIRCLE_JOB }}-{{ checksum "composer.json" }}
           paths:
             - vendor
   run-tests:
     steps:
-      - run: composer test-ci
+      - run: ./vendor/bin/phpunit --coverage-text --coverage-clover=build/coverage.xml
       - store_artifacts:
           path:  build/coverage.xml
 
@@ -58,13 +57,17 @@ jobs:
             fi
           when: always
 
+#Each workflow represents a Github check
 workflows:
-  build-and-test:
+  build_php_5:
     jobs:
       - php_5
-      - php_7:
-          requires:
-            - php_5
+  build_php_7:
+    jobs:
+      - php_7
+  snyk:
+    jobs:
+      - php_7
       - snyk:
           # Must define SNYK_TOKEN env
           context: snyk-env

@@ -2,6 +2,8 @@
 
 namespace Auth0\SDK\API\Management;
 
+use Auth0\SDK\API\Header\ContentType;
+
 class Tickets extends GenericResource
 {
     /**
@@ -17,9 +19,10 @@ class Tickets extends GenericResource
             $body['result_url'] = $result_url;
         }
 
-        $request = $this->apiClient->method('post')
-            ->addPath('tickets')
+        $request = $this->apiClient->post()
+            ->tickets()
             ->addPath('email-verification')
+            ->withHeader(new ContentType('application/json'))
             ->withBody(json_encode($body));
 
         return $request->call();
@@ -100,9 +103,10 @@ class Tickets extends GenericResource
             $body['connection_id'] = $connection_id;
         }
 
-        return $this->apiClient->method('post')
-            ->addPath('tickets')
+        return $this->apiClient->post()
+            ->tickets()
             ->addPath('password-change')
+            ->withHeader(new ContentType('application/json'))
             ->withBody(json_encode($body))
             ->call();
     }

@@ -212,7 +212,7 @@ class Users extends GenericResource
         return $this->apiClient->method('delete')
             ->addPath('users', $user_id)
             ->addPath('identities', $provider)
-            ->addPath($identity_id)
+            ->addPathVariable($identity_id)
             ->call();
     }
 
@@ -263,7 +263,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('get')
             ->addPath('users', $user_id)
-            ->addPath('roles')
+            ->addPathVariable('roles')
             ->withDictParams($params)
             ->call();
     }
@@ -295,7 +295,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('delete')
             ->addPath('users', $user_id)
-            ->addPath('roles')
+            ->addPathVariable('roles')
             ->withBody(json_encode($data))
             ->call();
     }
@@ -329,7 +329,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('post')
             ->addPath('users', $user_id)
-            ->addPath('roles')
+            ->addPathVariable('roles')
             ->withBody(json_encode($data))
             ->call();
     }
@@ -353,7 +353,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('get')
             ->addPath('users', $user_id)
-            ->addPath('enrollments')
+            ->addPathVariable('enrollments')
             ->call();
     }
 
@@ -380,7 +380,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('get')
             ->addPath('users', $user_id)
-            ->addPath('permissions')
+            ->addPathVariable('permissions')
             ->withDictParams($params)
             ->call();
     }
@@ -409,7 +409,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('delete')
             ->addPath('users', $user_id)
-            ->addPath('permissions')
+            ->addPathVariable('permissions')
             ->withBody(json_encode($data))
             ->call();
     }
@@ -438,7 +438,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('post')
             ->addPath('users', $user_id)
-            ->addPath('permissions')
+            ->addPathVariable('permissions')
             ->withBody(json_encode($data))
             ->call();
     }
@@ -466,7 +466,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('get')
             ->addPath('users', $user_id)
-            ->addPath('logs')
+            ->addPathVariable('logs')
             ->withDictParams($params)
             ->call();
     }
@@ -490,7 +490,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('post')
             ->addPath('users', $user_id)
-            ->addPath('recovery-code-regeneration')
+            ->addPathVariable('recovery-code-regeneration')
             ->call();
     }
 
@@ -513,7 +513,7 @@ class Users extends GenericResource
 
         return $this->apiClient->method('post')
             ->addPath('users', $user_id)
-            ->addPath('multifactor/actions/invalidate-remember-browser')
+            ->addPathVariable('multifactor/actions/invalidate-remember-browser')
             ->call();
     }
 
@@ -526,7 +526,7 @@ class Users extends GenericResource
     /**
      * Wrapper for self::getAll().
      *
-     * @deprecated 5.4.0, use $this->getAll instead.
+     * @deprecated 5.4.0, use $this->>getAll instead.
      *
      * @param array $params Search parameters to send.
      *

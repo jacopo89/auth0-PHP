@@ -54,20 +54,8 @@ class ResourceServersTest extends ApiTests
      */
     public static function setUpBeforeClass()
     {
-        $env = self::getEnv();
-        $api = new Management($env['API_TOKEN'], $env['DOMAIN'], ['timeout' => 30]);
-
-        self::$api              = $api->resourceServers();
+        self::$api              = self::getApi( 'resource_servers' );
         self::$serverIdentifier = 'TEST_PHP_SDK_ID_'.uniqid();
-    }
-
-    public function testThatMethodAndPropertyReturnSameClass()
-    {
-        $api = new Management(uniqid(), uniqid());
-        $this->assertInstanceOf( Management\ResourceServers::class, $api->resource_servers );
-        $this->assertInstanceOf( Management\ResourceServers::class, $api->resourceServers() );
-        $api->resource_servers = null;
-        $this->assertInstanceOf( Management\ResourceServers::class, $api->resourceServers() );
     }
 
     /**
@@ -89,7 +77,6 @@ class ResourceServersTest extends ApiTests
         ];
 
         $response = self::$api->create(self::$serverIdentifier, $create_data);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
 
         $this->assertNotEmpty($response);
         $this->assertNotEmpty($response['id']);
@@ -111,7 +98,6 @@ class ResourceServersTest extends ApiTests
     public function testGet()
     {
         $response = self::$api->get(self::$serverIdentifier);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         $this->assertNotEmpty($response);
         $this->assertEquals(self::$serverIdentifier, $response['identifier']);
     }
@@ -126,7 +112,6 @@ class ResourceServersTest extends ApiTests
     public function testGetAll()
     {
         $response = self::$api->getAll();
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
 
         // Should have at least the one we created and the management API.
         $this->assertGreaterThanOrEqual(2, count($response));
@@ -144,7 +129,6 @@ class ResourceServersTest extends ApiTests
 
         // Test pagination.
         $response_paged = self::$api->getAll(1, 1);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         $this->assertNotEmpty($response_paged);
         $this->assertEquals($response[1]['id'], $response_paged[0]['id']);
     }
@@ -167,7 +151,6 @@ class ResourceServersTest extends ApiTests
         ];
 
         $response = self::$api->update(self::$serverIdentifier, $update_data);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
 
         $this->assertEquals($update_data['name'], $response['name']);
         $this->assertEquals($update_data['token_lifetime'], $response['token_lifetime']);
@@ -186,13 +169,11 @@ class ResourceServersTest extends ApiTests
     public function testDelete()
     {
         $response = self::$api->delete(self::$serverIdentifier);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
 
         // Look for the resource server we just deleted.
         $get_server_throws_error = false;
         try {
             self::$api->get(self::$serverIdentifier);
-            usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         } catch (ClientException $e) {
             $get_server_throws_error = (404 === $e->getCode());
         }
@@ -214,7 +195,6 @@ class ResourceServersTest extends ApiTests
         $caught_get_no_id_exception = false;
         try {
             self::$api->get(null);
-            usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         } catch (CoreException $e) {
             $caught_get_no_id_exception = $this->errorHasString($e, 'Invalid "id" parameter');
         }
@@ -225,7 +205,6 @@ class ResourceServersTest extends ApiTests
         $caught_delete_no_id_exception = false;
         try {
             self::$api->delete(null);
-            usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         } catch (CoreException $e) {
             $caught_delete_no_id_exception = $this->errorHasString($e, 'Invalid "id" parameter');
         }
@@ -236,7 +215,6 @@ class ResourceServersTest extends ApiTests
         $caught_update_no_id_exception = false;
         try {
             self::$api->update(null, []);
-            usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         } catch (CoreException $e) {
             $caught_update_no_id_exception = $this->errorHasString($e, 'Invalid "id" parameter');
         }
@@ -247,7 +225,6 @@ class ResourceServersTest extends ApiTests
         $caught_create_empty_identifier_param_exception = false;
         try {
             self::$api->create(null, []);
-            usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         } catch (CoreException $e) {
             $caught_create_empty_identifier_param_exception = $this->errorHasString($e, 'Invalid "identifier" field');
         }
@@ -257,7 +234,6 @@ class ResourceServersTest extends ApiTests
         $caught_create_invalid_identifier_field_exception = false;
         try {
             self::$api->create('identifier', ['identifier' => 1234]);
-            usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
         } catch (CoreException $e) {
             $caught_create_invalid_identifier_field_exception = $this->errorHasString($e, 'Invalid "identifier" field');
         }

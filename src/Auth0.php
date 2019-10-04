@@ -17,6 +17,7 @@ use Auth0\SDK\API\Helpers\State\StateHandler;
 use Auth0\SDK\API\Helpers\State\SessionStateHandler;
 use Auth0\SDK\API\Helpers\State\DummyStateHandler;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
 /**
@@ -72,6 +73,7 @@ class Auth0
      * @var string
      */
     protected $clientSecret;
+
 
     /**
      * True if the client secret is base64 encoded, false if not.
@@ -226,6 +228,7 @@ class Auth0
      */
     protected $stateHandler;
 
+
     /**
      * BaseAuth0 Constructor.
      *
@@ -280,6 +283,7 @@ class Auth0
         $this->clientSecret        = $config['client_secret'];
         $this->clientSecretEncoded = ! empty( $config['secret_base64_encoded'] );
         $this->redirectUri         = $config['redirect_uri'];
+
 
         if (isset($config['audience'])) {
             $this->audience = $config['audience'];
@@ -412,58 +416,38 @@ class Auth0
     public function login($state = null, $connection = null, array $additionalParams = [])
     {
         $params = [];
-
-        if ($state) {
-            $params['state'] = $state;
+        if ($this->audience) {
+            $params['audience'] = $this->audience;
         }
 
-        if ($connection) {
-            $params['connection'] = $connection;
+        if ($this->scope) {
+            $params['scope'] = $this->scope;
         }
+
+        if ($state === null) {
+            $state = $this->stateHandler->issue();
+        } else {
+            $this->stateHandler->store($state);
+        }
+
+        $params['response_mode'] = $this->responseMode;
 
         if (! empty($additionalParams) && is_array($additionalParams)) {
             $params = array_replace($params, $additionalParams);
         }
 
-        $login_url = $this->getLoginUrl($params);
+        $url =
 
-        header('Location: '.$login_url);
-        exit;
-    }
-
-    /**
-     * Build the login URL.
-     *
-     * @param array $params Array of authorize parameters to use.
-     *
-     * @return string
-     */
-    public function getLoginUrl(array $params = [])
-    {
-        $default_params = [
-            'scope' => $this->scope,
-            'audience' => $this->audience,
-            'response_mode' => $this->responseMode,
-            'response_type' => $this->responseType,
-            'redirect_uri' => $this->redirectUri,
-        ];
-
-        $auth_params = array_replace( $default_params, $params );
-        $auth_params = array_filter( $auth_params );
-
-        if (empty( $auth_params['state'] )) {
-            $auth_params['state'] = $this->stateHandler->issue();
-        } else {
-            $this->stateHandler->store($auth_params['state']);
-        }
-
-        return $this->authentication->get_authorize_link(
-            $auth_params['response_type'],
-            $auth_params['redirect_uri'],
-            null,
-            null,
-            $auth_params
+        $url = $this->authentication->get_authorize_link(
+            $this->responseType,
+            $this->redirectUri,
+            $connection,
+            $state,
+            $params
         );
+
+        header('Location: '.$url);
+        exit;
     }
 
     /**
@@ -584,7 +568,7 @@ class Auth0
             $user = $this->authentication->userinfo($this->accessToken);
         }
 
-        if ($user) {
+        if (!empty($user)) {
             $this->setUser($user);
         }
 
@@ -668,12 +652,12 @@ class Auth0
         $jwtVerifier          = new JWTVerifier([
             'valid_audiences' => ! empty($this->idTokenAud) ? $this->idTokenAud : [ $this->clientId ],
             'supported_algs' => $this->idTokenAlg ? [ $this->idTokenAlg ] : [ 'HS256', 'RS256' ],
-            'authorized_iss' => $this->idTokenIss ? $this->idTokenIss : [ 'https://'.$this->domain.'/' ],
+            'authorized_iss' => $this->idTokenIss ? $this->idTokenIss : [ $this->domain ], //u4learn eliminare https?
             'client_secret' => $this->clientSecret,
             'secret_base64_encoded' => $this->clientSecretEncoded,
             'guzzle_options' => $this->guzzleOptions,
         ]);
-        $this->idTokenDecoded = (array) $jwtVerifier->verifyAndDecode( $idToken );
+        //$this->idTokenDecoded = (array) $jwtVerifier->verifyAndDecode( $idToken ); // u4learn avoid decoding
 
         if (in_array('id_token', $this->persistantMap)) {
             $this->store->set('id_token', $idToken);
@@ -802,5 +786,53 @@ class Auth0
     public function setDebugger(\Closure $debugger)
     {
         $this->debugger = $debugger;
+    }
+
+
+
+    public function getUserInfo($accessToken){
+
+        // CHIAMATA rest A USERINFO ENDPOINT di
+        if (! isset($options['client_id'])) {
+            $options['client_id'] = $this->clientId;
+        }
+
+        if (! isset($options['client_secret'])) {
+            $options['client_secret'] = $this->clientSecret;
+        }
+
+        /*
+
+        if (! isset($options['grant_type'])) {
+            throw new ApiException('grant_type is mandatory');
+        }
+        */
+
+        $keyCloakClient = new Client([
+            // Base URI is used with relative requests
+            'base_uri' => 'http://localhost:8080/',
+            // You can set any number of default request options.
+            'timeout'  => 2.0,
+        ]);
+
+        $response = $keyCloakClient->post('auth/realms/react-keycloak/protocol/openid-connect/userinfo', ['form_params'=>
+            [
+                //'grant_type'=> 'authorization_code',
+                'client_secret' => $options["client_secret"],
+                'client_id' => $options["client_id"],
+            ],
+            'headers'=>['Content-Type'=>'application/x-www-form-urlencoded', 'Authorization' => 'Bearer '.$accessToken]]);
+
+
+        $infos = json_decode($response->getBody(),true);
+        return $infos;
+        
+
+    }
+
+    public function setRedirectUri($uri){
+
+        return $this->redirectUri."&originalUri=".$uri;
+
     }
 }

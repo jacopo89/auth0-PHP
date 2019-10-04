@@ -1,6 +1,5 @@
 <phpunit
-  colors="true"
-  verbose="true"
+  coverage-text="true"
   bootstrap="./tests/bootstrap.php">
   <testsuites>
     <testsuite name="Auth0 PHP SDK Test Suite">

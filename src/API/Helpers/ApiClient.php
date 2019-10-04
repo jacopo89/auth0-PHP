@@ -7,7 +7,7 @@ use Auth0\SDK\API\Header\Telemetry;
 class ApiClient
 {
 
-    const API_VERSION = '5.6.0';
+    const API_VERSION = '5.5.1';
 
     protected static $infoHeadersDataEnabled = true;
 
@@ -64,16 +64,6 @@ class ApiClient
         }
     }
 
-    /**
-     * Magic method to map HTTP verbs to request types.
-     *
-     * @deprecated 5.6.0, use $this->method().
-     *
-     * @param string $name      - Method name used to call the magic method.
-     * @param array  $arguments - Arguments used in the magic method call.
-     *
-     * @return RequestBuilder
-     */
     public function __call($name, $arguments)
     {
         $builder = new RequestBuilder([
@@ -91,12 +81,11 @@ class ApiClient
      * Create a new RequestBuilder.
      * Similar to the above but does not use a magic method.
      *
-     * @param string  $method           - HTTP method to use (GET, POST, PATCH, etc).
-     * @param boolean $set_content_type - Automatically set a content-type header.
+     * @param string $method - HTTP method to use (GET, POST, PATCH, etc).
      *
      * @return RequestBuilder
      */
-    public function method($method, $set_content_type = true)
+    public function method($method)
     {
         $method  = strtolower($method);
         $builder = new RequestBuilder([
@@ -108,8 +97,8 @@ class ApiClient
         ]);
         $builder->withHeaders($this->headers);
 
-        if ($set_content_type && in_array($method, [ 'patch', 'post', 'put', 'delete' ])) {
-            $builder->withHeader(new ContentType('application/json'));
+        if (in_array($method, [ 'patch', 'post', 'put', 'delete' ])) {
+            $builder->withHeader(new ContentType('x-www-form-urlencoded')); //U4LEarn
         }
 
         return $builder;

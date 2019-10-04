@@ -2,6 +2,8 @@
 
 namespace Auth0\SDK\API\Management;
 
+use Auth0\SDK\API\Header\ContentType;
+
 class Tenants extends GenericResource
 {
     /**
@@ -12,9 +14,9 @@ class Tenants extends GenericResource
      */
     public function get($fields = null, $include_fields = null)
     {
-        $request = $this->apiClient->method('get')
-        ->addPath('tenants')
-        ->addPath('settings');
+        $request = $this->apiClient->get()
+        ->tenants()
+        ->settings();
 
         if ($fields !== null) {
             if (is_array($fields)) {
@@ -38,9 +40,10 @@ class Tenants extends GenericResource
      */
     public function update($data)
     {
-        return $this->apiClient->method('patch')
-        ->addPath('tenants')
-        ->addPath('settings')
+        return $this->apiClient->patch()
+        ->tenants()
+        ->settings()
+        ->withHeader(new ContentType('application/json'))
         ->withBody(json_encode($data))
         ->call();
     }

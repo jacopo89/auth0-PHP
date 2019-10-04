@@ -15,6 +15,7 @@ use Auth0\SDK\API\Helpers\ApiClient;
 use Auth0\SDK\Exception\ApiException;
 use Auth0\SDK\API\Helpers\InformationHeaders;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\Psr7;
 
 /**
@@ -74,6 +75,7 @@ class Authentication
      */
     private $apiClient;
 
+
     /**
      * Authentication constructor.
      *
@@ -104,7 +106,7 @@ class Authentication
         $this->guzzleOptions = $guzzleOptions;
 
         $this->apiClient = new ApiClient( [
-            'domain' => 'https://'.$this->domain,
+            'domain' => $this->domain, //U4learn rimosso https://
             'basePath' => '/',
             'guzzleOptions' => $guzzleOptions
         ] );
@@ -134,6 +136,7 @@ class Authentication
         $additional_params['response_type'] = $response_type;
         $additional_params['redirect_uri']  = $redirect_uri;
         $additional_params['client_id']     = $this->client_id;
+        $additional_params['scope'] = "openid";
 
         if ($connection !== null) {
             $additional_params['connection'] = $connection;
@@ -144,11 +147,13 @@ class Authentication
         }
 
         return sprintf(
-            'https://%s/authorize?%s',
+            '%s/protocol/openid-connect/auth?%s', //U4learn
             $this->domain,
             Psr7\build_query($additional_params)
         );
     }
+
+
 
     /**
      * Build and return a SAMLP link.
@@ -283,9 +288,10 @@ class Authentication
             $data['authParams'] = $authParams;
         }
 
-        return $this->apiClient->method('post')
-        ->addPath('passwordless')
-        ->addPath('start')
+        return $this->apiClient->post()
+        ->passwordless()
+        ->start()
+        ->withHeader(new ContentType('application/json'))
         ->withBody(json_encode($data))
         ->call();
     }
@@ -307,9 +313,10 @@ class Authentication
             'phone_number' => $phone_number,
         ];
 
-        return $this->apiClient->method('post')
-        ->addPath('passwordless')
-        ->addPath('start')
+        return $this->apiClient->post()
+        ->passwordless()
+        ->start()
+        ->withHeader(new ContentType('application/json'))
         ->withBody(json_encode($data))
         ->call();
     }
@@ -325,10 +332,25 @@ class Authentication
      */
     public function userinfo($access_token)
     {
-        return $this->apiClient->method('get')
-        ->addPath('userinfo')
+        /*
+        return $this->apiClient->get()
+        ->withHeader(new ContentType('application/json'))
         ->withHeader(new AuthorizationBearer($access_token))
         ->call();
+        */
+        $keyCloakClient = new Client([
+            // Base URI is used with relative requests
+            'base_uri' => 'http://localhost:8080/',
+            // You can set any number of default request options.
+            'timeout'  => 2.0,
+        ]);
+        $userInfos = $keyCloakClient->post('auth/realms/react-keycloak/protocol/openid-connect/userinfo',
+            ['headers'=>[
+                'Authorization' =>'Bearer '.$access_token
+            ]]);
+
+        $user = json_decode($userInfos->getBody(),true);
+        return $user;
     }
 
     /**
@@ -360,11 +382,13 @@ class Authentication
         }
 
         $request = $this->apiClient->method('post')
-            ->addPath( 'oauth/token' )
-            ->withBody(json_encode($options));
+            ->addPath( '/protocol/openid-connect/token' )->addFormParams($options);
+            //U4Learn, customization for keycloak
+            //->withBody(json_encode($options));
 
         if (isset($options['auth0_forwarded_for'])) {
-            $request->withHeader( new ForwardedFor( $options['auth0_forwarded_for'] ) );
+            //$request->withHeader( new ForwardedFor( $options['auth0_forwarded_for'] ) );
+            $request->withHeader(new ContentType('x-www-form-urlencoded'));
         }
 
         return $request->call();
@@ -390,7 +414,9 @@ class Authentication
         $options['code']          = $code;
         $options['grant_type']    = 'authorization_code';
 
-        return $this->oauth_token($options);
+        return $this->myCodeExchange($options);
+
+        //return $this->oauth_token($options);
     }
 
     /**
@@ -570,9 +596,10 @@ class Authentication
             'connection' => $connection,
         ];
 
-        return $this->apiClient->method('post')
-        ->addPath('dbconnections')
-        ->addPath('signup')
+        return $this->apiClient->post()
+        ->dbconnections()
+        ->signup()
+        ->withHeader(new ContentType('application/json'))
         ->withBody(json_encode($data))
         ->call();
     }
@@ -608,9 +635,10 @@ class Authentication
             $data['password'] = $password;
         }
 
-        return $this->apiClient->method('post')
-        ->addPath('dbconnections')
-        ->addPath('change_password')
+        return $this->apiClient->post()
+        ->dbconnections()
+        ->change_password()
+        ->withHeader(new ContentType('application/json'))
         ->withBody(json_encode($data))
         ->call();
     }
@@ -623,7 +651,7 @@ class Authentication
     /**
      * Set an ApiClient for use in this object
      *
-     * @deprecated 5.4.0, not used and no replacement provided.
+     * @deprecated 5.4.0, not used.
      *
      * @return void
      *
@@ -631,7 +659,7 @@ class Authentication
      */
     protected function setApiClient()
     {
-        $apiDomain = "https://{$this->domain}";
+        $apiDomain = "{$this->domain}"; //U4learn, tolto https://
 
         $client = new ApiClient(
             [
@@ -719,9 +747,10 @@ class Authentication
             'additionalParameters' => $additionalParameters,
         ];
 
-        return $this->apiClient->method('post')
-            ->addPath('users', $user_id)
-            ->addPath('impersonate')
+        return $this->apiClient->post()
+            ->users($user_id)
+            ->impersonate()
+            ->withHeader(new ContentType('application/json'))
             ->withHeader(new AuthorizationBearer($access_token))
             ->withBody(json_encode($data))
             ->call();
@@ -730,7 +759,7 @@ class Authentication
     /**
      * Authorize using an access token
      *
-     * @deprecated 5.1.1, disabled by default for new tenants as of 8 June
+     * @deprecated - 5.1.1, This feature is disabled by default for new tenants as of 8 June
      * 2017. Open the browser to do social authentication instead, which is
      * what Google and Facebook are recommending.
      *
@@ -764,9 +793,10 @@ class Authentication
             ]
         );
 
-        return $this->apiClient->method('post')
-            ->addPath('oauth')
-            ->addPath('access_token')
+        return $this->apiClient->post()
+            ->oauth()
+            ->access_token()
+            ->withHeader(new ContentType('application/json'))
             ->withBody(json_encode($data))
             ->call();
     }
@@ -828,11 +858,47 @@ class Authentication
             $data['connection'] = $connection;
         }
 
-        return $this->apiClient->method('post')
-            ->addPath('oauth')
-            ->addPath('ro')
+        return $this->apiClient->post()
+            ->oauth()
+            ->ro()
+            ->withHeader(new ContentType('application/json'))
             ->withBody(json_encode($data))
             ->call();
+    }
+
+    public function myCodeExchange(array $options)
+    {
+        if (! isset($options['client_id'])) {
+            $options['client_id'] = $this->client_id;
+        }
+
+        if (! isset($options['client_secret'])) {
+            $options['client_secret'] = $this->client_secret;
+        }
+
+        if (! isset($options['grant_type'])) {
+            throw new ApiException('grant_type is mandatory');
+        }
+
+        $keyCloakClient = new Client([
+            // Base URI is used with relative requests
+            'base_uri' => 'http://localhost:8080/',
+            // You can set any number of default request options.
+            'timeout'  => 2.0,
+        ]);
+
+        $response = $keyCloakClient->post('auth/realms/react-keycloak/protocol/openid-connect/token', ['form_params'=>
+            [
+                'code' => $options["code"],
+                'grant_type'=> 'authorization_code',
+                'client_secret' => $options["client_secret"],
+                'client_id' => $options["client_id"],
+                'redirect_uri' => $options["redirect_uri"]],
+            'headers'=>['Content-Type'=>'application/x-www-form-urlencoded']]);
+
+
+        $infos = json_decode($response->getBody(),true);
+        return $infos;
     }
     // phpcs:enable
 }

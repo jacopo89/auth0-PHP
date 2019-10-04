@@ -2,6 +2,8 @@
 
 namespace Auth0\SDK\API\Management;
 
+use Auth0\SDK\API\Header\ContentType;
+
 class Emails extends GenericResource
 {
     /**
@@ -12,9 +14,9 @@ class Emails extends GenericResource
      */
     public function getEmailProvider($fields = null, $include_fields = null)
     {
-        $request = $this->apiClient->method('get')
-        ->addPath('emails')
-        ->addPath('provider');
+        $request = $this->apiClient->get()
+        ->emails()
+        ->provider();
 
         if ($fields !== null) {
             if (is_array($fields)) {
@@ -38,9 +40,10 @@ class Emails extends GenericResource
      */
     public function configureEmailProvider($data)
     {
-        return $this->apiClient->method('post')
-        ->addPath('emails')
-        ->addPath('provider')
+        return $this->apiClient->post()
+        ->emails()
+        ->provider()
+        ->withHeader(new ContentType('application/json'))
         ->withBody(json_encode($data))
         ->call();
     }
@@ -52,9 +55,10 @@ class Emails extends GenericResource
      */
     public function updateEmailProvider($data)
     {
-        return $this->apiClient->method('patch')
-        ->addPath('emails')
-        ->addPath('provider')
+        return $this->apiClient->patch()
+        ->emails()
+        ->provider()
+        ->withHeader(new ContentType('application/json'))
         ->withBody(json_encode($data))
         ->call();
     }
@@ -65,9 +69,9 @@ class Emails extends GenericResource
      */
     public function deleteEmailProvider()
     {
-        return $this->apiClient->method('delete')
-        ->addPath('emails')
-        ->addPath('provider')
+        return $this->apiClient->delete()
+        ->emails()
+        ->provider()
         ->call();
     }
 }

@@ -30,16 +30,7 @@ class RulesTest extends ApiTests
      */
     public static function setUpBeforeClass()
     {
-        self::getEnv();
-    }
-
-    public function testThatMethodAndPropertyReturnSameClass()
-    {
-        $api = new Management(uniqid(), uniqid());
-        $this->assertInstanceOf( Management\Rules::class, $api->rules );
-        $this->assertInstanceOf( Management\Rules::class, $api->rules() );
-        $api->rules = null;
-        $this->assertInstanceOf( Management\Rules::class, $api->rules() );
+        self::$api = self::getApi( 'rules' );
     }
 
     /**
@@ -52,16 +43,12 @@ class RulesTest extends ApiTests
      */
     public function testGet()
     {
-        $api = new Management(self::$env['API_TOKEN'], self::$env['DOMAIN']);
-
-        $results = $api->rules()->getAll();
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $results = self::$api->getAll();
         $this->assertNotEmpty($results);
 
         // Check getting a single rule by a known ID.
         $get_rule_id = $results[0]['id'];
-        $result      = $api->rules()->get($get_rule_id);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $result      = self::$api->get($get_rule_id);
         $this->assertNotEmpty($result);
         $this->assertEquals($results[0]['id'], $get_rule_id);
 
@@ -77,8 +64,7 @@ class RulesTest extends ApiTests
         }
 
         // Check enabled rules.
-        $enabled_results = $api->rules()->getAll(true);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $enabled_results = self::$api->getAll(true);
         if ($has_enabled) {
             $this->assertNotEmpty($enabled_results);
         } else {
@@ -86,8 +72,7 @@ class RulesTest extends ApiTests
         }
 
         // Check disabled rules.
-        $disabled_results = $api->rules()->getAll(false);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $disabled_results = self::$api->getAll(false);
         if ($has_disabled) {
             $this->assertNotEmpty($disabled_results);
         } else {
@@ -105,18 +90,14 @@ class RulesTest extends ApiTests
      */
     public function testGetWithFields()
     {
-        $api = new Management(self::$env['API_TOKEN'], self::$env['DOMAIN']);
-
         $fields = ['id', 'name'];
 
-        $fields_results = $api->rules()->getAll(null, $fields, true);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $fields_results = self::$api->getAll(null, $fields, true);
         $this->assertNotEmpty($fields_results);
         $this->assertCount(count($fields), $fields_results[0]);
 
         $get_rule_id   = $fields_results[0]['id'];
-        $fields_result = $api->rules()->get($get_rule_id, $fields, true);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $fields_result = self::$api->get($get_rule_id, $fields, true);
         $this->assertNotEmpty($fields_result);
         $this->assertCount(count($fields), $fields_result);
     }
@@ -130,14 +111,11 @@ class RulesTest extends ApiTests
      */
     public function testGetAllPagination()
     {
-        $api           = new Management(self::$env['API_TOKEN'], self::$env['DOMAIN']);
-        $paged_results = $api->rules()->getAll(null, null, null, 0, 2);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $paged_results = self::$api->getAll(null, null, null, 0, 2);
         $this->assertCount(2, $paged_results);
 
         // Second page of 1 result.
-        $paged_results_2 = $api->rules()->getAll(null, null, null, 1, 1);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $paged_results_2 = self::$api->getAll(null, null, null, 1, 1);
         $this->assertCount(1, $paged_results_2);
         $this->assertEquals($paged_results[1]['id'], $paged_results_2[0]['id']);
     }
@@ -152,15 +130,13 @@ class RulesTest extends ApiTests
      */
     public function testCreateUpdateDelete()
     {
-        $api         = new Management(self::$env['API_TOKEN'], self::$env['DOMAIN']);
         $create_data = [
             'name' => 'test-create-rule-'.rand(),
             'script' => 'function (user, context, callback) { callback(null, user, context); }',
             'enabled' => true,
         ];
 
-        $create_result = $api->rules()->create($create_data);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $create_result = self::$api->create($create_data);
         $this->assertNotEmpty($create_result['id']);
         $this->assertEquals($create_data['enabled'], $create_result['enabled']);
         $this->assertEquals($create_data['name'], $create_result['name']);
@@ -173,14 +149,12 @@ class RulesTest extends ApiTests
             'enabled' => false,
         ];
 
-        $update_result = $api->rules()->update($test_rule_id, $update_data);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $update_result = self::$api->update($test_rule_id, $update_data);
         $this->assertEquals($update_data['enabled'], $update_result['enabled']);
         $this->assertEquals($update_data['name'], $update_result['name']);
         $this->assertEquals($update_data['script'], $update_result['script']);
 
-        $delete_result = $api->rules()->delete($test_rule_id);
-        usleep(AUTH0_PHP_TEST_INTEGRATION_SLEEP);
+        $delete_result = self::$api->delete($test_rule_id);
         $this->assertNull($delete_result);
     }
 
@@ -193,12 +167,10 @@ class RulesTest extends ApiTests
      */
     public function testExceptions()
     {
-        $api = new Management(uniqid(), uniqid());
-
         // Test that the get method throws an exception if the $id parameter is empty.
         $caught_get_no_id_exception = false;
         try {
-            $api->rules()->get(null);
+            self::$api->get(null);
         } catch (CoreException $e) {
             $caught_get_no_id_exception = $this->errorHasString($e, 'Invalid "id" parameter');
         }
@@ -208,7 +180,7 @@ class RulesTest extends ApiTests
         // Test that the delete method throws an exception if the $id parameter is empty.
         $caught_delete_no_id_exception = false;
         try {
-            $api->rules()->delete(null);
+            self::$api->delete(null);
         } catch (CoreException $e) {
             $caught_delete_no_id_exception = $this->errorHasString($e, 'Invalid "id" parameter');
         }
@@ -218,7 +190,7 @@ class RulesTest extends ApiTests
         // Test that the create method throws an exception if no "name" field is passed.
         $caught_create_no_name_exception = false;
         try {
-            $api->rules()->create(['script' => 'function(){}']);
+            self::$api->create(['script' => 'function(){}']);
         } catch (CoreException $e) {
             $caught_create_no_name_exception = $this->errorHasString($e, 'Missing required "name" field');
         }
@@ -228,7 +200,7 @@ class RulesTest extends ApiTests
         // Test that the create method throws an exception if no "script" field is passed.
         $caught_create_no_script_exception = false;
         try {
-            $api->rules()->create(['name' => 'test-create-rule-'.rand()]);
+            self::$api->create(['name' => 'test-create-rule-'.rand()]);
         } catch (CoreException $e) {
             $caught_create_no_script_exception = $this->errorHasString($e, 'Missing required "script" field');
         }
@@ -238,7 +210,7 @@ class RulesTest extends ApiTests
         // Test that the update method throws an exception if the $id parameter is empty.
         $caught_update_no_id_exception = false;
         try {
-            $api->rules()->update(null, []);
+            self::$api->update(null, []);
         } catch (CoreException $e) {
             $caught_update_no_id_exception = $this->errorHasString($e, 'Invalid "id" parameter');
         }

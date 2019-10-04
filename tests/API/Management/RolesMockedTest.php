@@ -1,11 +1,12 @@
 <?php
 namespace Auth0\Tests\API\Management;
 
-use Auth0\SDK\API\Helpers\InformationHeaders;
-use Auth0\SDK\API\Management;
 use Auth0\SDK\Exception\EmptyOrInvalidParameterException;
 use Auth0\SDK\Exception\InvalidPermissionsArrayException;
 use Auth0\Tests\Traits\ErrorHelpers;
+
+use Auth0\SDK\API\Helpers\InformationHeaders;
+
 use GuzzleHttp\Psr7\Response;
 
 /**
@@ -42,15 +43,6 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         self::$expectedTelemetry = $infoHeadersData->build();
     }
 
-    public function testThatMethodAndPropertyReturnSameClass()
-    {
-        $api = new Management(uniqid(), uniqid());
-        $this->assertInstanceOf( Management\Roles::class, $api->roles );
-        $this->assertInstanceOf( Management\Roles::class, $api->roles() );
-        $api->roles = null;
-        $this->assertInstanceOf( Management\Roles::class, $api->roles() );
-    }
-
     /**
      * Test a basic getAll roles call.
      *
@@ -62,7 +54,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->getAll( [ 'name_filter' => '__test_name_filter__', 'page' => 2 ] );
+        $api->call()->roles->getAll( [ 'name_filter' => '__test_name_filter__', 'page' => 2 ] );
 
         $this->assertEquals( 'GET', $api->getHistoryMethod() );
         $this->assertStringStartsWith( 'https://api.test.local/api/v2/roles', $api->getHistoryUrl() );
@@ -88,7 +80,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->create( '' );
+            $api->call()->roles->create( '' );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -108,7 +100,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->create( '__test_name__', [ 'description' => '__test_description__' ] );
+        $api->call()->roles->create( '__test_name__', [ 'description' => '__test_description__' ] );
 
         $this->assertEquals( 'POST', $api->getHistoryMethod() );
         $this->assertEquals( 'https://api.test.local/api/v2/roles', $api->getHistoryUrl() );
@@ -137,7 +129,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->get( '' );
+            $api->call()->roles->get( '' );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -157,7 +149,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->get( '__test_role_id__' );
+        $api->call()->roles->get( '__test_role_id__' );
 
         $this->assertEquals( 'GET', $api->getHistoryMethod() );
         $this->assertEquals( 'https://api.test.local/api/v2/roles/__test_role_id__', $api->getHistoryUrl() );
@@ -179,7 +171,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->delete( '' );
+            $api->call()->roles->delete( '' );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -199,13 +191,14 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->delete( '__test_role_id__' );
+        $api->call()->roles->delete( '__test_role_id__' );
 
         $this->assertEquals( 'DELETE', $api->getHistoryMethod() );
         $this->assertEquals( 'https://api.test.local/api/v2/roles/__test_role_id__', $api->getHistoryUrl() );
 
         $headers = $api->getHistoryHeaders();
         $this->assertEquals( 'Bearer __api_token__', $headers['Authorization'][0] );
+        $this->assertEquals( 'application/json', $headers['Content-Type'][0] );
         $this->assertEquals( self::$expectedTelemetry, $headers['Auth0-Client'][0] );
     }
 
@@ -221,7 +214,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->update( '', [] );
+            $api->call()->roles->update( '', [] );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -241,7 +234,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->update( '__test_role_id__', [ 'name' => '__test_new_name__' ] );
+        $api->call()->roles->update( '__test_role_id__', [ 'name' => '__test_new_name__' ] );
 
         $this->assertEquals( 'PATCH', $api->getHistoryMethod() );
         $this->assertEquals( 'https://api.test.local/api/v2/roles/__test_role_id__', $api->getHistoryUrl() );
@@ -268,7 +261,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->getPermissions( '' );
+            $api->call()->roles->getPermissions( '' );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -288,7 +281,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->getPermissions( '__test_role_id__', [ 'page' => -3, 'per_page' => -6 ] );
+        $api->call()->roles->getPermissions( '__test_role_id__', [ 'page' => -3, 'per_page' => -6 ] );
 
         $this->assertEquals( 'GET', $api->getHistoryMethod() );
         $this->assertStringStartsWith(
@@ -319,11 +312,11 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
             new Response( 200, self::$headers ),
         ] );
 
-        $api->call()->roles()->getPermissions( '__test_role_id__', [ 'include_totals' => false ] );
+        $api->call()->roles->getPermissions( '__test_role_id__', [ 'include_totals' => false ] );
 
         $this->assertContains( 'include_totals=false', $api->getHistoryQuery() );
 
-        $api->call()->roles()->getPermissions( '__test_role_id__', [ 'include_totals' => 1 ] );
+        $api->call()->roles->getPermissions( '__test_role_id__', [ 'include_totals' => 1 ] );
 
         $this->assertContains( 'include_totals=true', $api->getHistoryQuery() );
     }
@@ -340,7 +333,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->addPermissions( '', [] );
+            $api->call()->roles->addPermissions( '', [] );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -361,7 +354,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->addPermissions( '__test_role_id__', [] );
+            $api->call()->roles->addPermissions( '__test_role_id__', [] );
             $caught_exception = false;
         } catch (InvalidPermissionsArrayException $e) {
             $caught_exception = true;
@@ -381,7 +374,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->addPermissions(
+        $api->call()->roles->addPermissions(
             '__test_role_id__',
             [
                 [
@@ -423,7 +416,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->removePermissions( '', [] );
+            $api->call()->roles->removePermissions( '', [] );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -444,7 +437,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->removePermissions(
+            $api->call()->roles->removePermissions(
                 '__test_role_id__',
                 [ [ 'permission_name' => uniqid() ] ]
             );
@@ -456,7 +449,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $this->assertTrue( $caught_exception );
 
         try {
-            $api->call()->roles()->removePermissions(
+            $api->call()->roles->removePermissions(
                 '__test_role_id__',
                 [ [ 'resource_server_identifier' => uniqid() ] ]
             );
@@ -479,7 +472,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->removePermissions(
+        $api->call()->roles->removePermissions(
             '__test_role_id__',
             [
                 [
@@ -497,6 +490,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
 
         $headers = $api->getHistoryHeaders();
         $this->assertEquals( 'Bearer __api_token__', $headers['Authorization'][0] );
+        $this->assertEquals( 'application/json', $headers['Content-Type'][0] );
         $this->assertEquals( self::$expectedTelemetry, $headers['Auth0-Client'][0] );
 
         $body = $api->getHistoryBody();
@@ -520,7 +514,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->getUsers( '' );
+            $api->call()->roles->getUsers( '' );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -540,7 +534,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->getUsers( '__test_role_id__', [ 'per_page' => 6, 'include_totals' => 1 ] );
+        $api->call()->roles->getUsers( '__test_role_id__', [ 'per_page' => 6, 'include_totals' => 1 ] );
 
         $this->assertEquals( 'GET', $api->getHistoryMethod() );
         $this->assertStringStartsWith(
@@ -569,7 +563,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->addUsers( '', [] );
+            $api->call()->roles->addUsers( '', [] );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -590,7 +584,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
         $api = new MockManagementApi();
 
         try {
-            $api->call()->roles()->addUsers( '__test_role_id__', [] );
+            $api->call()->roles->addUsers( '__test_role_id__', [] );
             $exception_message = '';
         } catch (EmptyOrInvalidParameterException $e) {
             $exception_message = $e->getMessage();
@@ -610,7 +604,7 @@ class RolesTestMocked extends \PHPUnit_Framework_TestCase
     {
         $api = new MockManagementApi( [ new Response( 200, self::$headers ) ] );
 
-        $api->call()->roles()->addUsers(
+        $api->call()->roles->addUsers(
             '__test_role_id__',
             [ 'strategy|1234567890', 'strategy|0987654321' ]
         );

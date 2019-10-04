@@ -125,8 +125,6 @@ class RequestBuilder
     /**
      * Magic method to overload method calls to paths.
      *
-     * @deprecated 5.6.0, use $this->addPath() to add paths.
-     *
      * @param string     $name      Method invoked.
      * @param array|null $arguments Arguments to add to the path.
      *
@@ -148,8 +146,6 @@ class RequestBuilder
     /**
      * Add a path and an optional argument to this request.
      *
-     * TODO: Allow array or unlimited arguments
-     *
      * @param string      $name     Path to add.
      * @param string|null $argument Optional argument to add.
      *
@@ -167,8 +163,6 @@ class RequestBuilder
 
     /**
      * Add a path variable.
-     *
-     * @deprecated 5.6.0, use $this->addPath() instead.
      *
      * @param string $variable Path variable to add.
      *
@@ -198,8 +192,8 @@ class RequestBuilder
     public function getParams()
     {
         $paramsClean = [];
-        foreach ($this->params as $param => $value) {
-            if (! is_null( $value ) && '' !== $value) {
+        foreach ( $this->params as $param => $value ) {
+            if ( ! is_null( $value ) && '' !== $value ) {
                 $paramsClean[] = sprintf( '%s=%s', $param, $value );
             }
         }
@@ -208,7 +202,6 @@ class RequestBuilder
     }
 
     /**
-     * @deprecated 5.6.0, no alternative provided.
      *
      * @return RequestBuilder
      */
@@ -251,7 +244,14 @@ class RequestBuilder
      */
     public function addFormParam($key, $value)
     {
-        $this->form_params[$key] = $this->prepareBoolParam( $value );
+        $this->form_params[$key] = $value;
+        return $this;
+    }
+    
+    public function addFormParams($paramsArray){
+        foreach ($paramsArray as $param => $value){
+            $this->addFormParam($param, $value);
+        }
         return $this;
     }
 
@@ -362,7 +362,10 @@ class RequestBuilder
      */
     public function withParam($key, $value)
     {
-        $this->params[$key] = $this->prepareBoolParam( $value );
+        $value = ($value === true ? 'true' : $value);
+        $value = ($value === false ? 'false' : $value);
+
+        $this->params[$key] = $value;
         return $this;
     }
 
@@ -439,21 +442,5 @@ class RequestBuilder
         }
 
         return $multipart;
-    }
-
-    /**
-     * Translate a boolean value to a string for use in a URL or form parameter.
-     *
-     * @param mixed $value Parameter value to check.
-     *
-     * @return mixed string
-     */
-    private function prepareBoolParam($value)
-    {
-        if (is_bool( $value )) {
-            return true === $value ? 'true' : 'false';
-        }
-
-        return $value;
     }
 }
