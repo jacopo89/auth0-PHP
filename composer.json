@@ -1,7 +1,7 @@
 {
-  "name": "auth0/auth0-php",
+  "name": "jacopo89/auth0-php",
   "description": "Auth0 PHP SDK.",
-  "homepage": "https://github.com/auth0/auth0-PHP",
+  "homepage": "https://github.com/jacopo89/auth0-PHP",
   "license": "MIT",
   "authors": [
     {
