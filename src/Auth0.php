@@ -801,6 +801,10 @@ class Auth0
             $options['client_secret'] = $this->clientSecret;
         }
 
+        if (! isset($options['keycloak_domain'])){
+            $options['keycloak_domain'] = $this->domain;
+        }
+
         /*
 
         if (! isset($options['grant_type'])) {
@@ -810,12 +814,12 @@ class Auth0
 
         $keyCloakClient = new Client([
             // Base URI is used with relative requests
-            'base_uri' => 'http://localhost:8080/',
+            'base_uri' => $options['keycloak_domain'],
             // You can set any number of default request options.
             'timeout'  => 2.0,
         ]);
 
-        $response = $keyCloakClient->post('auth/realms/react-keycloak/protocol/openid-connect/userinfo', ['form_params'=>
+        $response = $keyCloakClient->post('realms/master/protocol/openid-connect/userinfo', ['form_params'=>
             [
                 //'grant_type'=> 'authorization_code',
                 'client_secret' => $options["client_secret"],
